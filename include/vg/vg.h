@@ -44,6 +44,10 @@
 #	define VG_CONFIG_COMMAND_LIST_BEGIN_END_API 1
 #endif
 
+#ifndef VG_DARKCONTACT_EXPERIMENTAL
+#	define VG_DARKCONTACT_EXPERIMENTAL 1
+#endif
+
 #if VG_CONFIG_DEBUG
 #include <bx/debug.h>
 
