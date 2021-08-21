@@ -391,7 +391,7 @@ struct FontFlags
 struct Context;
 
 // Context
-Context* createContext(bx::AllocatorI* allocator, const ContextConfig* cfg = nullptr);
+Context* createContext(bx::AllocatorI* allocator, const ContextConfig* cfg = nullptr, float maxExtrusionScale = 1.0f / 100.f);
 void destroyContext(Context* ctx);
 
 void begin(Context* ctx, uint16_t viewID, uint16_t canvasWidth, uint16_t canvasHeight, float devicePixelRatio);

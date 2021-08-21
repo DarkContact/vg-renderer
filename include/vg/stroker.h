@@ -8,7 +8,7 @@ namespace vg
 {
 struct Stroker;
 
-Stroker* createStroker(bx::AllocatorI* allocator);
+Stroker* createStroker(bx::AllocatorI* allocator, float maxExtrusionScale);
 void destroyStroker(Stroker* stroker);
 
 void strokerReset(Stroker* stroker, float scale, float tesselationTolerance, float fringeWidth);

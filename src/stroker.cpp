@@ -37,15 +37,14 @@ inline Vec2 vec2Dir(const Vec2& a, const Vec2& b)
 	return{ dx * invLen, dy * invLen };
 }
 
-inline Vec2 calcExtrusionVector(const Vec2& d01, const Vec2& d12)
+inline Vec2 calcExtrusionVector(const Vec2& d01, const Vec2& d12, float maxExtrusionScale)
 {
 	// v is the vector from the path point to the outline point, assuming a stroke width of 1.0.
 	// Equation obtained by solving the intersection of the 2 line segments. d01 and d12 are 
 	// assumed to be normalized.
-	static const float kMaxExtrusionScale = 1.0f / 100.0f;
 	Vec2 v = vec2PerpCCW(d01);
 	const float cross = vec2Cross(d12, d01);
-	if (bx::abs(cross) > kMaxExtrusionScale) {
+	if (bx::abs(cross) > maxExtrusionScale) {
 		v = vec2Scale(vec2Sub(d01, d12), (1.0f / cross));
 	}
 
@@ -171,6 +170,7 @@ struct Stroker
 	float m_FringeWidth;
 	float m_Scale;
 	float m_TesselationTolerance;
+  float m_MaxExtrusionScale;
 };
 
 static void resetGeometry(Stroker* stroker);
@@ -191,7 +191,7 @@ static void addPosColor(Stroker* stroker, const Vec2* srcPos, const uint32_t* sr
 template<uint32_t N>
 static void addIndices(Stroker* stroker, const uint16_t* src);
 
-Stroker* createStroker(bx::AllocatorI* allocator)
+Stroker* createStroker(bx::AllocatorI* allocator, float maxExtrusionScale)
 {
 	Stroker* stroker = (Stroker*)BX_ALLOC(allocator, sizeof(Stroker));
 	bx::memSet(stroker, 0, sizeof(Stroker));
@@ -199,6 +199,7 @@ Stroker* createStroker(bx::AllocatorI* allocator)
 	stroker->m_FringeWidth = 1.0f;
 	stroker->m_Scale = 1.0f;
 	stroker->m_TesselationTolerance = 0.25f;
+  stroker->m_MaxExtrusionScale = maxExtrusionScale;
 	return stroker;
 }
 
@@ -733,7 +734,7 @@ void strokerConvexFillAA(Stroker* stroker, Mesh* mesh, const float* vertexList, 
 			const Vec2& p2 = vtx[iSegment == numVertices - 1 ? 0 : iSegment + 1];
 
 			const Vec2 d12 = vec2Dir(p1, p2);
-			const Vec2 v = calcExtrusionVector(d01, d12);
+			const Vec2 v = calcExtrusionVector(d01, d12, stroker->m_MaxExtrusionScale);
 			const Vec2 v_aa = vec2Scale(v, aa);
 
 			dstPos[0] = vec2Add(p1, v_aa);
@@ -894,7 +895,7 @@ bool strokerConcaveFillEndAA(Stroker* stroker, Mesh* mesh, uint32_t color, FillR
 				const Vec2& p2 = vtx[iSegment == (uint32_t)(numContourVertices - 1) ? 0 : iSegment + 1];
 
 				const Vec2 d12 = vec2Dir(p1, p2);
-				const Vec2 v = calcExtrusionVector(d01, d12);
+				const Vec2 v = calcExtrusionVector(d01, d12, stroker->m_MaxExtrusionScale);
 				const Vec2 v_aa = vec2Scale(v, aa);
 
 				const Vec2 p[2] = {
@@ -1082,7 +1083,7 @@ void polylineStroke(Stroker* stroker, Mesh* mesh, const Vec2* vtx, uint32_t numP
 
 		const Vec2 d12 = vec2Dir(p1, p2);
 
-		const Vec2 v = calcExtrusionVector(d01, d12);
+		const Vec2 v = calcExtrusionVector(d01, d12, stroker->m_MaxExtrusionScale);
 		const Vec2 v_hsw = vec2Scale(v, hsw);
 
 		// Check which one of the points is the inner corner.
@@ -1517,7 +1518,7 @@ void polylineStrokeAA(Stroker* stroker, Mesh* mesh, const Vec2* vtx, uint32_t nu
 
 		const Vec2 d12 = vec2Dir(p1, p2);
 
-		const Vec2 v = calcExtrusionVector(d01, d12);
+		const Vec2 v = calcExtrusionVector(d01, d12, stroker->m_MaxExtrusionScale);
 		const Vec2 v_hsw_aa = vec2Scale(v, hsw_aa);
 
 		// Check which one of the points is the inner corner.
@@ -2055,7 +2056,7 @@ void polylineStrokeAAThin(Stroker* stroker, Mesh* mesh, const Vec2* vtx, uint32_
 
 		const Vec2 d12 = vec2Dir(p1, p2);
 
-		const Vec2 v = calcExtrusionVector(d01, d12);
+		const Vec2 v = calcExtrusionVector(d01, d12, stroker->m_MaxExtrusionScale);
 		const Vec2 v_hsw_aa = vec2Scale(v, hsw_aa);
 
 		// Check which one of the points is the inner corner.

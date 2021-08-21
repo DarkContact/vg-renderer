@@ -707,7 +707,7 @@ inline bool isLocal(ImagePatternHandle handle) { return isLocal(handle.flags); }
 //////////////////////////////////////////////////////////////////////////
 // Public interface
 //
-Context* createContext(bx::AllocatorI* allocator, const ContextConfig* userCfg)
+Context* createContext(bx::AllocatorI* allocator, const ContextConfig* userCfg, float maxExtrusionScale)
 {
 	static const ContextConfig defaultConfig = {
 		64,                          // m_MaxGradients
@@ -768,7 +768,7 @@ Context* createContext(bx::AllocatorI* allocator, const ContextConfig* userCfg)
 	ctx->m_DataPoolMutex = BX_NEW(allocator, bx::Mutex)();
 #endif
 	ctx->m_Path = createPath(allocator);
-	ctx->m_Stroker = createStroker(allocator);
+	ctx->m_Stroker = createStroker(allocator, maxExtrusionScale);
 
 	ctx->m_ImageHandleAlloc = bx::createHandleAlloc(allocator, cfg->m_MaxImages);
 	ctx->m_CmdListHandleAlloc = bx::createHandleAlloc(allocator, cfg->m_MaxCommandLists);
